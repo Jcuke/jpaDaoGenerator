@@ -47,7 +47,7 @@ public class jpaDaoGenerator extends AnAction {
                 String vfpath = virtualFile.getPath();
                 if (virtualFile.getName().endsWith(".java") && !virtualFile.isDirectory()) {
                     System.out.println(vfpath);
-                    if (vfpath.contains("com") && !vfpath.contains("jpadao")) {
+                    if (vfpath.contains("com") && vfpath.contains("entity")) {
                         PsiManagerImpl pmi = (PsiManagerImpl) PsiManagerImpl.getInstance(project);
                         PsiDirectory dir = new PsiDirectoryImpl(pmi, targetFolders.get(0));
                         String targetClassName = virtualFile.getName().replaceFirst(".java", "");
