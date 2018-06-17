@@ -38,7 +38,7 @@
 
   <actions>
     <!-- Add your actions here -->
-      <action id="jpaDaoGenerator" class="jpaDaoGenerator" text="jpaDaoGenerator" description="Dao generator for Jpa">
+      <action id="com.jcuke.generator.jpaDaoGenerator" class="com.jcuke.generator.jpaDaoGenerator" text="com.jcuke.generator.jpaDaoGenerator" description="Dao generator for Jpa">
           <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
           <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt C"/>
       </action>

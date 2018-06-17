@@ -1,19 +1,18 @@
+package com.jcuke.generator;
+
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentIterator;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileFilter;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.file.PsiDirectoryImpl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +51,23 @@ public class jpaDaoGenerator extends AnAction {
                         PsiDirectory dir = new PsiDirectoryImpl(pmi, targetFolders.get(0));
                         String targetClassName = virtualFile.getName().replaceFirst(".java", "");
                         targetClassName += "Dao";
+                        final PsiJavaFile psiJavaFile = (PsiJavaFile) dir.findFile(targetClassName + ".java");
+                        if(psiJavaFile != null){
+                            //jpa dao 接口已经存在, 则直接删除文件, 接下来会重新创建
+                            //psiJavaFile.delete();
+                            //这里直接删除会报错
+                            //ERROR - plication.impl.ApplicationImpl - Assertion failed: Write access is allowed inside write-action only (see com.intellij.openapi.application.Application.runWriteAction())
+                            //所以用这个方法
+                            new WriteCommandAction.Simple(project, psiJavaFile) {
+
+                                @Override
+                                protected void run() throws Throwable {
+
+                                    psiJavaFile.delete();
+
+                                }
+                            }.execute();
+                        }
                         PsiClass pc = JavaDirectoryService.getInstance().createInterface(dir, targetClassName);
                         System.out.println(pc.getText());
                         System.out.println(pc);
@@ -64,12 +80,19 @@ public class jpaDaoGenerator extends AnAction {
 
         iterator = new ContentIterator() {
             @Override
-            public boolean processFile(VirtualFile virtualFile) {
+            public boolean processFile(final VirtualFile virtualFile) {
                 if (virtualFile.getName().endsWith("Dao.java") && !virtualFile.isDirectory()) {
                     try {
-                        virtualFile.setBinaryContent(getClassText(virtualFile));
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
+                        PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
+                        new WriteCommandAction.Simple(project, psiFile) {
+                            @Override
+                            protected void run() throws Throwable {
+                                virtualFile.setBinaryContent(getClassText(virtualFile));
+
+                            }
+                        }.execute();
+                    } catch (Throwable e){
+                        e.printStackTrace();
                     }
                 }
                 return true;
